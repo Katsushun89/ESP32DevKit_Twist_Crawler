@@ -1,3 +1,10 @@
+#define BLYNK_PRINT Serial
+#define BLYNK_USE_DIRECT_CONNECT
+
+#include <BlynkSimpleEsp32_BT.h>
+#include "src/config.h"
+
+int blynkState = 0;
 
 const uint32_t LEDC_TIMER_BIT = 8;
 const uint32_t LEDC_BASE_FREQ = 1000;
@@ -37,6 +44,9 @@ void setup() {
     ledcAttachPin(MOTOR_PIN_REAR_L, MOTOR_CH_REAR_L);
     ledcAttachPin(MOTOR_PIN_FORWARD_R, MOTOR_CH_FORWARD_R);
     ledcAttachPin(MOTOR_PIN_REAR_R, MOTOR_CH_REAR_R);
+
+    Blynk.setDeviceName("Blynk");
+    Blynk.begin(auth);
 }
 
 void setMotorSpeed(int32_t forward_ch, int32_t rear_ch, int speed)
@@ -94,8 +104,35 @@ bool checkTimerInterval(int32_t interval_time)
     return false;
 }
 
+//blynk event
+BLYNK_WRITE(V1)
+{
+    int x = param[0].asInt();
+    int y = param[1].asInt();
+ 
+    Serial.print("x: ");
+    Serial.print(x);
+    Serial.print(" y: ");
+    Serial.print(y);
+    Serial.println("");
+
+}
+
+void updateBlynkState(void)
+{
+    if(blynkState == 0 && Blynk.connected()){
+        blynkState = 1;
+    }else if (blynkState == 1 && Blynk.connected() == 0){
+        blynkState = 0;
+    }
+}
+
 void loop()
 {
+    Blynk.run();
+    updateBlynkState();
+
+#if 0
     static uint32_t check_state = 0;
 
     if(checkTimerInterval(10 * 1000)){
@@ -125,5 +162,5 @@ void loop()
         rotateMotor(0, -0);
         break;
     }
-
+#endif
 }
