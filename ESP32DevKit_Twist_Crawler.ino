@@ -1,6 +1,6 @@
 
 const uint32_t LEDC_TIMER_BIT = 8;
-const uint32_t LEDC_BASE_FREQ = 5000;
+const uint32_t LEDC_BASE_FREQ = 1000;
 
 const int32_t MOTOR_CH_FORWARD_L = 4;
 const int32_t MOTOR_CH_REAR_L    = 5;
@@ -11,9 +11,7 @@ const int32_t MOTOR_PIN_FORWARD_L = 25;
 const int32_t MOTOR_PIN_REAR_L    = 26;
 const int32_t MOTOR_PIN_FORWARD_R = 33;
 const int32_t MOTOR_PIN_REAR_R    = 32;
-const 
 
-long speed = 0;
 int32_t speed_l = 0;
 int32_t speed_r = 0;
 
@@ -44,21 +42,33 @@ void setup() {
 void setMotorSpeed(int32_t forward_ch, int32_t rear_ch, int speed)
 {
     if(speed >= 0){
-        ledcWrite(forward_ch, speed);
+        Serial.print("fwrd: ch:");
+        Serial.print(forward_ch);
+        Serial.print(" speed:");
+        Serial.print(abs(speed));
+        Serial.print(" ");
+        ledcWrite(forward_ch, abs(speed));
         ledcWrite(rear_ch, 0);
     }else{
+        Serial.print("back: ch:");
+        Serial.print(rear_ch);
+        Serial.print(" speed:");
+        Serial.print(abs(speed));
+        Serial.print(" ");
         ledcWrite(forward_ch, 0);
-        ledcWrite(rear_ch, speed);
+        ledcWrite(rear_ch, abs(speed));
     }
 }
 void rotateMotor(int8_t y, int8_t x)
 {
-    speed_l = y + (x / 2); 
-    speed_r = y - (x / 2); 
+    speed_l = y + (x / 2);
+    speed_r = y - (x / 2);
 
     setMotorSpeed(MOTOR_CH_FORWARD_L, MOTOR_CH_REAR_L, speed_l);
     setMotorSpeed(MOTOR_CH_FORWARD_R, MOTOR_CH_REAR_R, speed_r);
+    Serial.println("");
 
+#if 0
     Serial.print("y:");
     Serial.print(y);
     Serial.print(" x:");
@@ -68,6 +78,7 @@ void rotateMotor(int8_t y, int8_t x)
     Serial.print(" speed R:");
     Serial.print(speed_r);
     Serial.println("");
+#endif
 }
 
 bool checkTimerInterval(int32_t interval_time)
@@ -102,10 +113,10 @@ void loop()
         rotateMotor(0, 0);
         break;
     case MOTOR_CHECK_STATE_FORWARD:
-        rotateMotor(-100, 0);
+        rotateMotor(0, 100);
         break;
     case MOTOR_CHECK_STATE_BACK:
-        rotateMotor(0, 0);
+        rotateMotor(0, -100);
         break;
     case MOTOR_CHECK_STATE_RIGHT:
         rotateMotor(0, 0);
