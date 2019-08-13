@@ -35,6 +35,8 @@ void setup() {
     Serial.begin(115200);
     Serial.println("setup");
 
+    pinMode(15, OUTPUT); //debug LED
+
     ledcSetup(MOTOR_CH_FORWARD_L, LEDC_BASE_FREQ, LEDC_TIMER_BIT);
     ledcSetup(MOTOR_CH_REAR_L,    LEDC_BASE_FREQ, LEDC_TIMER_BIT);
     ledcSetup(MOTOR_CH_FORWARD_R, LEDC_BASE_FREQ, LEDC_TIMER_BIT);
@@ -116,6 +118,19 @@ BLYNK_WRITE(V1)
     Serial.print(y);
     Serial.println("");
 
+    //rotateMotor(y, x);
+}
+
+//blynk event
+BLYNK_WRITE(V0)
+{
+    int button_state = param.asInt();
+
+    if(button_state == 1){
+        digitalWrite(15, LOW);
+    }else{
+        digitalWrite(15, HIGH);
+    }
 }
 
 void updateBlynkState(void)
@@ -131,6 +146,7 @@ void loop()
 {
     Blynk.run();
     updateBlynkState();
+
 
 #if 0
     static uint32_t check_state = 0;
