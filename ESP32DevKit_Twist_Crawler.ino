@@ -20,11 +20,11 @@ const int32_t MOTOR_PIN_REAR_L    = 26;
 const int32_t MOTOR_PIN_FORWARD_R = 33;
 const int32_t MOTOR_PIN_REAR_R    = 32;
 
-int32_t speed_l = 0;
-int32_t speed_r = 0;
+int16_t speed_l = 0;
+int16_t speed_r = 0;
 
-int32_t joystick_x = 0;
-int32_t joystick_y = 0;
+int16_t joystick_x = 0;
+int16_t joystick_y = 0;
 
 enum {
     MOTOR_CHECK_STATE_STOP = 0,
@@ -61,46 +61,48 @@ void setMotorSpeed(int32_t forward_ch, int32_t rear_ch, int16_t speed)
         uint16_t set_speed = speed;
         if(set_speed > MAX_PWM) set_speed = MAX_PWM;
 
-        //ledcWrite(forward_ch, set_speed);
-        //ledcWrite(rear_ch, 0);
+        ledcWrite(forward_ch, set_speed);
+        ledcWrite(rear_ch, 0);
+#if 0
         Serial.print("fwd: ch:");
         Serial.print(forward_ch);
         Serial.print(" spd:");
         Serial.print(set_speed);
         Serial.print(" ");
+#endif
     }else{
         uint16_t set_speed = abs(speed);
         if(set_speed > MAX_PWM) set_speed = MAX_PWM;
 
-        //ledcWrite(forward_ch, 0);
-        //ledcWrite(rear_ch, set_speed);
+        ledcWrite(forward_ch, 0);
+        ledcWrite(rear_ch, set_speed);
+#if 0
         Serial.print("back: ch:");
         Serial.print(rear_ch);
         Serial.print(" spd:");
         Serial.print(set_speed);
         Serial.print(" ");
+#endif
     }
 }
-void rotateMotor(int8_t y, int8_t x)
+void rotateMotor(int16_t x, int16_t y)
 {
     speed_l = y + (x / 2);
     speed_r = y - (x / 2);
 
+#if 0
+    Serial.print("x:");
+    Serial.print(x);
+    Serial.print(" y:");
+    Serial.print(y);
+    Serial.print(" spd l:");
+    Serial.print(speed_l);
+    Serial.print(" spd r:");
+    Serial.print(speed_r);
+#endif
     setMotorSpeed(MOTOR_CH_FORWARD_L, MOTOR_CH_REAR_L, speed_l);
     setMotorSpeed(MOTOR_CH_FORWARD_R, MOTOR_CH_REAR_R, speed_r);
     Serial.println("");
-
-#if 0
-    Serial.print("y:");
-    Serial.print(y);
-    Serial.print(" x:");
-    Serial.print(x);
-    Serial.print(" speed L:");
-    Serial.print(speed_l);
-    Serial.print(" speed R:");
-    Serial.print(speed_r);
-    Serial.println("");
-#endif
 }
 
 bool checkTimerInterval(int32_t interval_time)
