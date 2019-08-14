@@ -87,10 +87,11 @@ void setMotorSpeed(int32_t forward_ch, int32_t rear_ch, int16_t speed)
 }
 void rotateMotor(int16_t x, int16_t y)
 {
-    speed_l = y + (x / 2);
-    speed_r = y - (x / 2);
+    float ratio = pow(x, 2) / (pow(x, 2) + pow(y, 2));
+    speed_l = y + static_cast<int16_t>(x * ratio);
+    speed_r = y - static_cast<int16_t>(x * ratio);
 
-#if 0
+#if 0 
     Serial.print("x:");
     Serial.print(x);
     Serial.print(" y:");
