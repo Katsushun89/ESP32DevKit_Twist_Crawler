@@ -4,7 +4,7 @@
 #include <BlynkSimpleEsp32_BT.h>
 #include "src/config.h"
 
-int blynkState = 0;
+bool is_connected_blynk = false;
 
 const uint32_t LEDC_TIMER_BIT = 8;
 const uint32_t LEDC_BASE_FREQ = 1000;
@@ -22,6 +22,9 @@ const int32_t MOTOR_PIN_REAR_R    = 32;
 int32_t speed_l = 0;
 int32_t speed_r = 0;
 
+int32_t joystick_x = 0;
+int32_t joystick_y = 0;
+
 enum {
     MOTOR_CHECK_STATE_STOP = 0,
     MOTOR_CHECK_STATE_FORWARD, 
@@ -35,7 +38,7 @@ void setup() {
     Serial.begin(115200);
     Serial.println("setup");
 
-    pinMode(15, OUTPUT); //debug LED
+    pinMode(15, OUTPUT);
 
     ledcSetup(MOTOR_CH_FORWARD_L, LEDC_BASE_FREQ, LEDC_TIMER_BIT);
     ledcSetup(MOTOR_CH_REAR_L,    LEDC_BASE_FREQ, LEDC_TIMER_BIT);
@@ -109,44 +112,35 @@ bool checkTimerInterval(int32_t interval_time)
 //blynk event
 BLYNK_WRITE(V1)
 {
-    int x = param[0].asInt();
-    int y = param[1].asInt();
- 
+    joystick_x = param[0].asInt();
+    joystick_y = param[1].asInt();
+
+/* 
     Serial.print("x: ");
     Serial.print(x);
     Serial.print(" y: ");
     Serial.print(y);
     Serial.println("");
-
-    //rotateMotor(y, x);
+*/
 }
 
-//blynk event
-BLYNK_WRITE(V0)
+void updateis_connected_blynk(void)
 {
-    int button_state = param.asInt();
-
-    if(button_state == 1){
+    if(is_connected_blynk == false && Blynk.connected()){
+        is_connected_blynk = true;
         digitalWrite(15, LOW);
-    }else{
+    }else if (is_connected_blynk == true && Blynk.connected() == 0){
+        is_connected_blynk = false;
         digitalWrite(15, HIGH);
-    }
-}
-
-void updateBlynkState(void)
-{
-    if(blynkState == 0 && Blynk.connected()){
-        blynkState = 1;
-    }else if (blynkState == 1 && Blynk.connected() == 0){
-        blynkState = 0;
     }
 }
 
 void loop()
 {
     Blynk.run();
-    updateBlynkState();
+    updateis_connected_blynk();
 
+    rotateMotor(joystick_x, joystick_y);
 
 #if 0
     static uint32_t check_state = 0;
@@ -171,7 +165,7 @@ void loop()
     case MOTOR_CHECK_STATE_BACK:
         rotateMotor(0, -100);
         break;
-    case MOTOR_CHECK_STATE_RIGHT:
+      case MOTOR_CHECK_STATE_RIGHT:
         rotateMotor(0, 0);
         break;
     case MOTOR_CHECK_STATE_LEFT:
