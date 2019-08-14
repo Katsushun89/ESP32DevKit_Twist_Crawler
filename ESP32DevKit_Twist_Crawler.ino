@@ -8,6 +8,7 @@ bool is_connected_blynk = false;
 
 const uint32_t LEDC_TIMER_BIT = 8;
 const uint32_t LEDC_BASE_FREQ = 1000;
+const uint16_t MAX_PWM = 1 << LEDC_TIMER_BIT;
 
 const int32_t MOTOR_CH_FORWARD_L = 4;
 const int32_t MOTOR_CH_REAR_L    = 5;
@@ -54,24 +55,30 @@ void setup() {
     Blynk.begin(auth);
 }
 
-void setMotorSpeed(int32_t forward_ch, int32_t rear_ch, int speed)
+void setMotorSpeed(int32_t forward_ch, int32_t rear_ch, int16_t speed)
 {
     if(speed >= 0){
-        Serial.print("fwrd: ch:");
+        uint16_t set_speed = speed;
+        if(set_speed > MAX_PWM) set_speed = MAX_PWM;
+
+        //ledcWrite(forward_ch, set_speed);
+        //ledcWrite(rear_ch, 0);
+        Serial.print("fwd: ch:");
         Serial.print(forward_ch);
-        Serial.print(" speed:");
-        Serial.print(abs(speed));
+        Serial.print(" spd:");
+        Serial.print(set_speed);
         Serial.print(" ");
-        ledcWrite(forward_ch, abs(speed));
-        ledcWrite(rear_ch, 0);
     }else{
+        uint16_t set_speed = abs(speed);
+        if(set_speed > MAX_PWM) set_speed = MAX_PWM;
+
+        //ledcWrite(forward_ch, 0);
+        //ledcWrite(rear_ch, set_speed);
         Serial.print("back: ch:");
         Serial.print(rear_ch);
-        Serial.print(" speed:");
-        Serial.print(abs(speed));
+        Serial.print(" spd:");
+        Serial.print(set_speed);
         Serial.print(" ");
-        ledcWrite(forward_ch, 0);
-        ledcWrite(rear_ch, abs(speed));
     }
 }
 void rotateMotor(int8_t y, int8_t x)
@@ -126,12 +133,19 @@ BLYNK_WRITE(V1)
 
 void updateis_connected_blynk(void)
 {
+    bool is_update_connection = false;
+
     if(is_connected_blynk == false && Blynk.connected()){
         is_connected_blynk = true;
-        digitalWrite(15, LOW);
+        is_update_connection = true;
     }else if (is_connected_blynk == true && Blynk.connected() == 0){
         is_connected_blynk = false;
-        digitalWrite(15, HIGH);
+        is_update_connection = true;
+    }
+
+    if(is_update_connection){
+        joystick_x = 0;
+        joystick_y = 0;
     }
 }
 
