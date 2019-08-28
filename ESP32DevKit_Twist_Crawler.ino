@@ -170,25 +170,16 @@ void updateis_connected_blynk(void)
     }
 }
 
-void ctrlServo(void)
+//blynk event
+BLYNK_WRITE(V2)
 {
-    for (servo1_pos = 0; servo1_pos <= 180; servo1_pos += 1) { // sweep from 0 degrees to 180 degrees
-        // in steps of 1 degree
-        servo1.write(servo1_pos);
-        delay(2);             // waits 20ms for the servo to reach the position
-    }
-    for (servo1_pos = 180; servo1_pos >= 0; servo1_pos -= 1) { // sweep from 180 degrees to 0 degrees
-        servo1.write(servo1_pos);
-        delay(2);
-    }
+    servo1.write(param.asInt());
 }
 
 void loop()
 {
-    //Blynk.run();
-    //updateis_connected_blynk();
+    Blynk.run();
+    updateis_connected_blynk();
 
     //rotateMotor(joystick_x, joystick_y);
-
-    ctrlServo();
 }
