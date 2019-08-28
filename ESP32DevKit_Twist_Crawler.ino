@@ -2,6 +2,7 @@
 #define BLYNK_USE_DIRECT_CONNECT
 
 #include <BlynkSimpleEsp32_BT.h>
+#include <ESP32Servo.h>
 #include "src/config.h"
 
 bool is_connected_blynk = false;
@@ -26,6 +27,15 @@ int16_t speed_r = 0;
 int16_t joystick_x = 0;
 int16_t joystick_y = 0;
 
+//Servo
+Servo servo1; // create four servo objects 
+int32_t servo1_pin = 18;
+// Published values for SG90 servos; adjust if needed
+const int32_t MIN_US = 500;
+const int32_t MAX_US = 2400;
+
+int32_t servo1_pos = 0;      // position in degrees
+
 enum {
     MOTOR_CHECK_STATE_STOP = 0,
     MOTOR_CHECK_STATE_FORWARD, 
@@ -34,6 +44,12 @@ enum {
     MOTOR_CHECK_STATE_LEFT, 
     MOTOR_CHECK_STATE_FIN, 
 };
+
+void setupServo(void)
+{
+  servo1.setPeriodHertz(50); // Standard 50hz servo
+  servo1.attach(servo1_pin, MIN_US, MAX_US);
+}
 
 void setup() {
     Serial.begin(115200);
@@ -53,6 +69,8 @@ void setup() {
 
     Blynk.setDeviceName("Blynk");
     Blynk.begin(auth);
+
+    setupServo();
 }
 
 void setMotorSpeed(int32_t forward_ch, int32_t rear_ch, int16_t speed)
@@ -152,42 +170,25 @@ void updateis_connected_blynk(void)
     }
 }
 
+void ctrlServo(void)
+{
+    for (servo1_pos = 0; servo1_pos <= 180; servo1_pos += 1) { // sweep from 0 degrees to 180 degrees
+        // in steps of 1 degree
+        servo1.write(servo1_pos);
+        delay(2);             // waits 20ms for the servo to reach the position
+    }
+    for (servo1_pos = 180; servo1_pos >= 0; servo1_pos -= 1) { // sweep from 180 degrees to 0 degrees
+        servo1.write(servo1_pos);
+        delay(2);
+    }
+}
+
 void loop()
 {
-    Blynk.run();
-    updateis_connected_blynk();
+    //Blynk.run();
+    //updateis_connected_blynk();
 
-    rotateMotor(joystick_x, joystick_y);
+    //rotateMotor(joystick_x, joystick_y);
 
-#if 0
-    static uint32_t check_state = 0;
-
-    if(checkTimerInterval(10 * 1000)){
-        check_state++;
-        if(check_state > MOTOR_CHECK_STATE_FIN){
-            check_state = MOTOR_CHECK_STATE_FIN;
-        }
-        Serial.print("state:");
-        Serial.println(check_state);
-    }
-
-    switch(check_state){
-    case MOTOR_CHECK_STATE_STOP:
-    case MOTOR_CHECK_STATE_FIN:
-        rotateMotor(0, 0);
-        break;
-    case MOTOR_CHECK_STATE_FORWARD:
-        rotateMotor(0, 100);
-        break;
-    case MOTOR_CHECK_STATE_BACK:
-        rotateMotor(0, -100);
-        break;
-      case MOTOR_CHECK_STATE_RIGHT:
-        rotateMotor(0, 0);
-        break;
-    case MOTOR_CHECK_STATE_LEFT:
-        rotateMotor(0, -0);
-        break;
-    }
-#endif
+    ctrlServo();
 }
